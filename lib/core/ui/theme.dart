@@ -7,9 +7,9 @@ abstract final class AppTheme {
     return ThemeData(
       colorScheme: AppColors.lightColorScheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.lightColorScheme.surfaceContainer,
+        backgroundColor: AppColors.lightColorScheme.surfaceContainerHigh,
       ),
-      scaffoldBackgroundColor: AppColors.lightColorScheme.surfaceContainer,
+      scaffoldBackgroundColor: AppColors.lightColorScheme.surfaceContainerHigh,
       brightness: Brightness.light,
       fontFamily: 'Jost',
       useMaterial3: true,
@@ -20,9 +20,9 @@ abstract final class AppTheme {
     return ThemeData(
       colorScheme: AppColors.darkColorScheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.darkColorScheme.surfaceContainer,
+        backgroundColor: AppColors.darkColorScheme.surfaceContainerHigh,
       ),
-      scaffoldBackgroundColor: AppColors.lightColorScheme.surfaceContainer,
+      scaffoldBackgroundColor: AppColors.lightColorScheme.surfaceContainerHigh,
       brightness: Brightness.dark,
       fontFamily: 'Jost',
       useMaterial3: true,
