@@ -19,9 +19,15 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme(),
       routerConfig: router,
       builder: (context, child) {
-        return Scaffold(
-          body: child,
-          appBar: AppBar(title: const Text('Hello World'), centerTitle: true),
+        return DefaultTabController(
+          length: 3,
+          child: Scaffold(
+            body: child,
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {},
+              child: Icon(Icons.add),
+            ),
+          ),
         );
       },
     );
