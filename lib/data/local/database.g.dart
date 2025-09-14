@@ -40,11 +40,26 @@ class $TaskItemsTable extends TaskItems
   );
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'body',
+    'content',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isCheckedMeta = const VerificationMeta(
+    'isChecked',
+  );
+  @override
+  late final GeneratedColumn<bool> isChecked = GeneratedColumn<bool>(
+    'is_checked',
     aliasedName,
     false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_checked" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -58,7 +73,13 @@ class $TaskItemsTable extends TaskItems
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, title, content, createdAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    content,
+    isChecked,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -82,13 +103,17 @@ class $TaskItemsTable extends TaskItems
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
-    if (data.containsKey('body')) {
+    if (data.containsKey('content')) {
       context.handle(
         _contentMeta,
-        content.isAcceptableOrUnknown(data['body']!, _contentMeta),
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
       );
-    } else if (isInserting) {
-      context.missing(_contentMeta);
+    }
+    if (data.containsKey('is_checked')) {
+      context.handle(
+        _isCheckedMeta,
+        isChecked.isAcceptableOrUnknown(data['is_checked']!, _isCheckedMeta),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -115,7 +140,11 @@ class $TaskItemsTable extends TaskItems
       )!,
       content: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}body'],
+        data['${effectivePrefix}content'],
+      ),
+      isChecked: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_checked'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -133,12 +162,14 @@ class $TaskItemsTable extends TaskItems
 class TaskItem extends DataClass implements Insertable<TaskItem> {
   final int id;
   final String title;
-  final String content;
+  final String? content;
+  final bool isChecked;
   final DateTime? createdAt;
   const TaskItem({
     required this.id,
     required this.title,
-    required this.content,
+    this.content,
+    required this.isChecked,
     this.createdAt,
   });
   @override
@@ -146,7 +177,10 @@ class TaskItem extends DataClass implements Insertable<TaskItem> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['title'] = Variable<String>(title);
-    map['body'] = Variable<String>(content);
+    if (!nullToAbsent || content != null) {
+      map['content'] = Variable<String>(content);
+    }
+    map['is_checked'] = Variable<bool>(isChecked);
     if (!nullToAbsent || createdAt != null) {
       map['created_at'] = Variable<DateTime>(createdAt);
     }
@@ -157,7 +191,10 @@ class TaskItem extends DataClass implements Insertable<TaskItem> {
     return TaskItemsCompanion(
       id: Value(id),
       title: Value(title),
-      content: Value(content),
+      content: content == null && nullToAbsent
+          ? const Value.absent()
+          : Value(content),
+      isChecked: Value(isChecked),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -172,7 +209,8 @@ class TaskItem extends DataClass implements Insertable<TaskItem> {
     return TaskItem(
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
-      content: serializer.fromJson<String>(json['content']),
+      content: serializer.fromJson<String?>(json['content']),
+      isChecked: serializer.fromJson<bool>(json['isChecked']),
       createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
     );
   }
@@ -182,7 +220,8 @@ class TaskItem extends DataClass implements Insertable<TaskItem> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
-      'content': serializer.toJson<String>(content),
+      'content': serializer.toJson<String?>(content),
+      'isChecked': serializer.toJson<bool>(isChecked),
       'createdAt': serializer.toJson<DateTime?>(createdAt),
     };
   }
@@ -190,12 +229,14 @@ class TaskItem extends DataClass implements Insertable<TaskItem> {
   TaskItem copyWith({
     int? id,
     String? title,
-    String? content,
+    Value<String?> content = const Value.absent(),
+    bool? isChecked,
     Value<DateTime?> createdAt = const Value.absent(),
   }) => TaskItem(
     id: id ?? this.id,
     title: title ?? this.title,
-    content: content ?? this.content,
+    content: content.present ? content.value : this.content,
+    isChecked: isChecked ?? this.isChecked,
     createdAt: createdAt.present ? createdAt.value : this.createdAt,
   );
   TaskItem copyWithCompanion(TaskItemsCompanion data) {
@@ -203,6 +244,7 @@ class TaskItem extends DataClass implements Insertable<TaskItem> {
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
       content: data.content.present ? data.content.value : this.content,
+      isChecked: data.isChecked.present ? data.isChecked.value : this.isChecked,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -213,13 +255,14 @@ class TaskItem extends DataClass implements Insertable<TaskItem> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('content: $content, ')
+          ..write('isChecked: $isChecked, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, content, createdAt);
+  int get hashCode => Object.hash(id, title, content, isChecked, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -227,37 +270,42 @@ class TaskItem extends DataClass implements Insertable<TaskItem> {
           other.id == this.id &&
           other.title == this.title &&
           other.content == this.content &&
+          other.isChecked == this.isChecked &&
           other.createdAt == this.createdAt);
 }
 
 class TaskItemsCompanion extends UpdateCompanion<TaskItem> {
   final Value<int> id;
   final Value<String> title;
-  final Value<String> content;
+  final Value<String?> content;
+  final Value<bool> isChecked;
   final Value<DateTime?> createdAt;
   const TaskItemsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.content = const Value.absent(),
+    this.isChecked = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   TaskItemsCompanion.insert({
     this.id = const Value.absent(),
     required String title,
-    required String content,
+    this.content = const Value.absent(),
+    this.isChecked = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : title = Value(title),
-       content = Value(content);
+  }) : title = Value(title);
   static Insertable<TaskItem> custom({
     Expression<int>? id,
     Expression<String>? title,
     Expression<String>? content,
+    Expression<bool>? isChecked,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
-      if (content != null) 'body': content,
+      if (content != null) 'content': content,
+      if (isChecked != null) 'is_checked': isChecked,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -265,13 +313,15 @@ class TaskItemsCompanion extends UpdateCompanion<TaskItem> {
   TaskItemsCompanion copyWith({
     Value<int>? id,
     Value<String>? title,
-    Value<String>? content,
+    Value<String?>? content,
+    Value<bool>? isChecked,
     Value<DateTime?>? createdAt,
   }) {
     return TaskItemsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
       content: content ?? this.content,
+      isChecked: isChecked ?? this.isChecked,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -286,7 +336,10 @@ class TaskItemsCompanion extends UpdateCompanion<TaskItem> {
       map['title'] = Variable<String>(title.value);
     }
     if (content.present) {
-      map['body'] = Variable<String>(content.value);
+      map['content'] = Variable<String>(content.value);
+    }
+    if (isChecked.present) {
+      map['is_checked'] = Variable<bool>(isChecked.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -300,6 +353,7 @@ class TaskItemsCompanion extends UpdateCompanion<TaskItem> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('content: $content, ')
+          ..write('isChecked: $isChecked, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -321,14 +375,16 @@ typedef $$TaskItemsTableCreateCompanionBuilder =
     TaskItemsCompanion Function({
       Value<int> id,
       required String title,
-      required String content,
+      Value<String?> content,
+      Value<bool> isChecked,
       Value<DateTime?> createdAt,
     });
 typedef $$TaskItemsTableUpdateCompanionBuilder =
     TaskItemsCompanion Function({
       Value<int> id,
       Value<String> title,
-      Value<String> content,
+      Value<String?> content,
+      Value<bool> isChecked,
       Value<DateTime?> createdAt,
     });
 
@@ -353,6 +409,11 @@ class $$TaskItemsTableFilterComposer
 
   ColumnFilters<String> get content => $composableBuilder(
     column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isChecked => $composableBuilder(
+    column: $table.isChecked,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -386,6 +447,11 @@ class $$TaskItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isChecked => $composableBuilder(
+    column: $table.isChecked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -409,6 +475,9 @@ class $$TaskItemsTableAnnotationComposer
 
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<bool> get isChecked =>
+      $composableBuilder(column: $table.isChecked, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -447,24 +516,28 @@ class $$TaskItemsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> title = const Value.absent(),
-                Value<String> content = const Value.absent(),
+                Value<String?> content = const Value.absent(),
+                Value<bool> isChecked = const Value.absent(),
                 Value<DateTime?> createdAt = const Value.absent(),
               }) => TaskItemsCompanion(
                 id: id,
                 title: title,
                 content: content,
+                isChecked: isChecked,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String title,
-                required String content,
+                Value<String?> content = const Value.absent(),
+                Value<bool> isChecked = const Value.absent(),
                 Value<DateTime?> createdAt = const Value.absent(),
               }) => TaskItemsCompanion.insert(
                 id: id,
                 title: title,
                 content: content,
+                isChecked: isChecked,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0

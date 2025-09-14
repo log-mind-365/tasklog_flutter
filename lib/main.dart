@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tasklog_flutter/core/routing/router.dart';
 import 'package:tasklog_flutter/core/ui/theme.dart';
+import 'package:tasklog_flutter/presentation/dashboard/dash_board_view.dart';
 
 final helloWorldProvider = Provider((_) => 'Hello World');
 
@@ -14,22 +14,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
+    return MaterialApp(
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
-      routerConfig: router,
-      builder: (context, child) {
-        return DefaultTabController(
-          length: 3,
-          child: Scaffold(
-            body: child,
-            floatingActionButton: FloatingActionButton(
-              onPressed: () {},
-              child: Icon(Icons.add),
-            ),
-          ),
-        );
-      },
+      home: DefaultTabController(length: 3, child: const DashBoardView()),
     );
   }
 }

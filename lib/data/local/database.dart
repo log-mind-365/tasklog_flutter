@@ -6,8 +6,13 @@ part 'database.g.dart';
 
 class TaskItems extends Table {
   IntColumn get id => integer().autoIncrement()();
+
   TextColumn get title => text().withLength(min: 1, max: 30)();
-  TextColumn get content => text().named('body')();
+
+  TextColumn get content => text().nullable()();
+
+  BoolColumn get isChecked => boolean().withDefault(const Constant(false))();
+
   DateTimeColumn get createdAt => dateTime().nullable()();
 }
 

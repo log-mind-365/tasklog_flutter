@@ -1,103 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tasklog_flutter/core/constants/dash_board_tab_menu_enum.dart';
+import 'package:tasklog_flutter/presentation/dashboard/dash_board_view_model.dart';
+import 'package:tasklog_flutter/presentation/dashboard/widgets/write_task_bottom_sheet.dart';
 
-enum DashBoardTabMenu {
-  progress,
-  success,
-  fail;
+import '../../data/model/task_item.dart';
 
-  @override
-  String toString() {
-    switch (this) {
-      case DashBoardTabMenu.progress:
-        return 'Progress';
-      case DashBoardTabMenu.success:
-        return 'Success';
-      case DashBoardTabMenu.fail:
-        return 'Fail';
-    }
-  }
-
-  Icon get icon {
-    switch (this) {
-      case DashBoardTabMenu.progress:
-        return Icon(Icons.task);
-      case DashBoardTabMenu.success:
-        return Icon(Icons.check);
-      case DashBoardTabMenu.fail:
-        return Icon(Icons.close);
-    }
-  }
-}
-
-class TaskItem {
-  final int id;
-  final String name;
-  final bool isChecked;
-
-  TaskItem({required this.id, required this.name, this.isChecked = false});
-
-  Map<String, dynamic> toMap() {
-    return {'id': id, 'name': name, 'isChecked': isChecked};
-  }
-
-  factory TaskItem.fromMap(Map<String, dynamic> map) {
-    return TaskItem(
-      id: map['id'],
-      name: map['name'],
-      isChecked: map['isChecked'],
-    );
-  }
-}
-
-class DashBoardView extends StatelessWidget {
+class DashBoardView extends ConsumerWidget {
   const DashBoardView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return NestedScrollView(
-      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-        return [
-          SliverAppBar(
-            floating: true,
-            pinned: true,
-            scrolledUnderElevation: 0,
-            title: Text('TaskLog'),
-            actions: [CircleAvatar()],
-            actionsPadding: EdgeInsets.only(right: 10),
-            bottom: TabBar(
-              tabs: [
-                Tab(text: DashBoardTabMenu.progress.toString()),
-                Tab(text: DashBoardTabMenu.success.toString()),
-                Tab(text: DashBoardTabMenu.fail.toString()),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              floating: true,
+              pinned: true,
+              scrolledUnderElevation: 0,
+              title: Text('TaskLog'),
+              actions: [CircleAvatar(child: Icon(Icons.person))],
+              actionsPadding: EdgeInsets.only(right: 10),
+              bottom: TabBar(
+                tabs: [
+                  Tab(icon: DashBoardTabMenu.favorite.icon),
+                  Tab(text: DashBoardTabMenu.progress.toString()),
+                  Tab(text: DashBoardTabMenu.success.toString()),
+                ],
+              ),
+            ),
+          ];
+        },
+        body: Builder(
+          builder: (context) {
+            final viewmodel = ref.watch(dashBoardViewModelProvider);
+            return TabBarView(
+              children: [
+                _buildCardListView(
+                  context,
+                  viewmodel.tasks.where((e) => e.isChecked).toList(),
+                  DashBoardTabMenu.favorite,
+                ),
+                _buildCardListView(
+                  context,
+                  viewmodel.tasks.where((e) => e.isChecked).toList(),
+                  DashBoardTabMenu.progress,
+                ),
+                _buildCardListView(
+                  context,
+                  viewmodel.tasks.where((e) => !e.isChecked).toList(),
+                  DashBoardTabMenu.success,
+                ),
               ],
-            ),
-          ),
-        ];
-      },
-      body: TabBarView(
-        children: [
-          _buildCardListView(
-            context,
-            List<TaskItem>.generate(5, (i) => TaskItem(id: i, name: 'item $i')),
-            DashBoardTabMenu.progress,
-          ),
-          _buildCardListView(
-            context,
-            List<TaskItem>.generate(
-              100,
-              (i) => TaskItem(id: i, name: 'item $i'),
-            ),
-            DashBoardTabMenu.success,
-          ),
-          _buildCardListView(
-            context,
-            List<TaskItem>.generate(
-              300,
-              (i) => TaskItem(id: i, name: 'item $i'),
-            ),
-            DashBoardTabMenu.fail,
-          ),
-        ],
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return WriteTaskBottomSheet();
+            },
+          );
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
@@ -125,7 +94,7 @@ class DashBoardView extends StatelessWidget {
         }
         final itemIndex = index - 1;
         return ListTile(
-          title: Text(items[itemIndex].name),
+          title: Text(items[itemIndex].title),
           leading: Radio(value: items[itemIndex].isChecked),
           trailing: IconButton(icon: Icon(Icons.star_border), onPressed: () {}),
           onTap: () {},
