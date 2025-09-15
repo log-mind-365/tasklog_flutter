@@ -42,7 +42,7 @@ final class DashBoardViewModelProvider
 }
 
 String _$dashBoardViewModelHash() =>
-    r'8fa24ade549e51c119036b276cb849cb6df95180';
+    r'b1ec00e40c09c6b2d3f1fd453eef73f2f888e690';
 
 abstract class _$DashBoardViewModel extends $Notifier<DashBoardState> {
   DashBoardState build();
