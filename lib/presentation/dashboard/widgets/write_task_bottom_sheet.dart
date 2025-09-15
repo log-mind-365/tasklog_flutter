@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tasklog_flutter/presentation/dashboard/viewmodel/dash_board_viewmodel.dart';
 
 class WriteTaskBottomSheet extends ConsumerWidget {
@@ -19,7 +20,7 @@ class WriteTaskBottomSheet extends ConsumerWidget {
             ),
             onSubmitted: (value) {
               ref.read(dashBoardViewModelProvider.notifier).addTask(value, '');
-              Navigator.pop(context);
+              context.pop();
             },
           ),
           Row(

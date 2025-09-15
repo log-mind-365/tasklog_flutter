@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tasklog_flutter/core/constants/dash_board_tab_menu_enum.dart';
 import 'package:tasklog_flutter/presentation/dashboard/viewmodel/dash_board_viewmodel.dart';
 import 'package:tasklog_flutter/presentation/dashboard/widgets/write_task_bottom_sheet.dart';
@@ -91,7 +92,9 @@ class DashBoardView extends StatelessWidget {
           title: Text(state.tasks[itemIndex].title),
           leading: Radio(value: state.tasks[itemIndex].isCompleted),
           trailing: IconButton(icon: Icon(Icons.star_border), onPressed: () {}),
-          onTap: () {},
+          onTap: () {
+            context.push('/detail/${state.tasks[index].id}');
+          },
         );
       },
     );
