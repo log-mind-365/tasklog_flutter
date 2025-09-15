@@ -2,7 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tasklog_flutter/core/constants/dash_board_tab_menu_enum.dart';
 import 'package:tasklog_flutter/core/di/injection_container.dart';
 import 'package:tasklog_flutter/domain/usecase/task_usecase.dart';
-import 'package:tasklog_flutter/presentation/dashboard/dash_board_state.dart';
+import 'package:tasklog_flutter/presentation/dashboard/viewmodel/dash_board_state.dart';
 
 part 'dash_board_viewmodel.g.dart';
 

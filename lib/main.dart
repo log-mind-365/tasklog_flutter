@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tasklog_flutter/core/ui/theme.dart';
 import 'package:tasklog_flutter/presentation/dashboard/dash_board_view.dart';
 
-final helloWorldProvider = Provider((_) => 'Hello World');
-
 void main() {
   runApp(ProviderScope(child: const MyApp()));
 }
