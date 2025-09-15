@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tasklog_flutter/core/constants/dash_board_tab_menu_enum.dart';
 import 'package:tasklog_flutter/domain/entity/task_entity.dart';
 
-class DashBoardViewModel extends Notifier<DashBoardState> {
+part 'dash_board_viewmodel.g.dart';
+
+@riverpod
+class DashBoardViewModel extends _$DashBoardViewModel {
   @override
   DashBoardState build() {
     return const DashBoardState(
