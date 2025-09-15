@@ -27,8 +27,8 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Future<List<TaskEntity>> getTasks() {
-    // TODO: implement getTasks
-    throw UnimplementedError();
+  Future<List<TaskEntity>> getTasks() async {
+    final taskModels = await _localDataSource.getTasks();
+    return taskModels.map((task) => task.toEntity()).toList();
   }
 }

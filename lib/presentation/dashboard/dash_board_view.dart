@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tasklog_flutter/core/constants/dash_board_tab_menu_enum.dart';
-import 'package:tasklog_flutter/domain/entity/task_entity.dart';
 import 'package:tasklog_flutter/presentation/dashboard/viewmodel/dash_board_viewmodel.dart';
 import 'package:tasklog_flutter/presentation/dashboard/widgets/write_task_bottom_sheet.dart';
 
-class DashBoardView extends ConsumerWidget {
+class DashBoardView extends StatelessWidget {
   const DashBoardView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -32,28 +31,13 @@ class DashBoardView extends ConsumerWidget {
           ];
         },
         body: Builder(
-          builder: (context) {
-            final viewmodel = ref.watch(dashBoardViewModelProvider);
-            return TabBarView(
-              children: [
-                _buildCardListView(
-                  context,
-                  viewmodel.tasks.where((e) => e.isCompleted).toList(),
-                  DashBoardTabMenu.favorite,
-                ),
-                _buildCardListView(
-                  context,
-                  viewmodel.tasks.where((e) => e.isCompleted).toList(),
-                  DashBoardTabMenu.progress,
-                ),
-                _buildCardListView(
-                  context,
-                  viewmodel.tasks.where((e) => !e.isCompleted).toList(),
-                  DashBoardTabMenu.success,
-                ),
-              ],
-            );
-          },
+          builder: (context) => TabBarView(
+            children: [
+              _buildCardListView(context),
+              _buildCardListView(context),
+              _buildCardListView(context),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -70,21 +54,32 @@ class DashBoardView extends ConsumerWidget {
     );
   }
 
-  Widget _buildCardListView(
-    BuildContext context,
-    List<TaskEntity> items,
-    DashBoardTabMenu menu,
-  ) {
+  Widget _buildCardListView(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final viewmodel = ref.watch(dashBoardViewModelProvider);
+        return switch (viewmodel) {
+          AsyncValue(:final value?) => _buildSuccessView(value),
+          AsyncValue(error: != null) => Center(
+            child: Text('Error: ${viewmodel.error}'),
+          ),
+          _ => Center(child: CircularProgressIndicator()),
+        };
+      },
+    );
+  }
+
+  Widget _buildSuccessView(DashBoardState state) {
     return ListView.builder(
       padding: EdgeInsets.symmetric(vertical: 8),
-      itemCount: items.length + 1,
+      itemCount: state.tasks.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return ListTile(
             title: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14.0),
               child: Text(
-                menu.toString(),
+                state.currentTabMenu.toString(),
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -93,8 +88,8 @@ class DashBoardView extends ConsumerWidget {
         }
         final itemIndex = index - 1;
         return ListTile(
-          title: Text(items[itemIndex].title),
-          leading: Radio(value: items[itemIndex].isCompleted),
+          title: Text(state.tasks[itemIndex].title),
+          leading: Radio(value: state.tasks[itemIndex].isCompleted),
           trailing: IconButton(icon: Icon(Icons.star_border), onPressed: () {}),
           onTap: () {},
         );

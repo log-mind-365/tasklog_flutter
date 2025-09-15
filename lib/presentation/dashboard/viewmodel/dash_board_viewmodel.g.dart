@@ -13,7 +13,7 @@ part of 'dash_board_viewmodel.dart';
 const dashBoardViewModelProvider = DashBoardViewModelProvider._();
 
 final class DashBoardViewModelProvider
-    extends $NotifierProvider<DashBoardViewModel, DashBoardState> {
+    extends $AsyncNotifierProvider<DashBoardViewModel, DashBoardState> {
   const DashBoardViewModelProvider._()
     : super(
         from: null,
@@ -31,31 +31,23 @@ final class DashBoardViewModelProvider
   @$internal
   @override
   DashBoardViewModel create() => DashBoardViewModel();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(DashBoardState value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<DashBoardState>(value),
-    );
-  }
 }
 
 String _$dashBoardViewModelHash() =>
-    r'b1ec00e40c09c6b2d3f1fd453eef73f2f888e690';
+    r'86afffcd26ec471ce7245544a0c51af614db8497';
 
-abstract class _$DashBoardViewModel extends $Notifier<DashBoardState> {
-  DashBoardState build();
+abstract class _$DashBoardViewModel extends $AsyncNotifier<DashBoardState> {
+  FutureOr<DashBoardState> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<DashBoardState, DashBoardState>;
+    final ref = this.ref as $Ref<AsyncValue<DashBoardState>, DashBoardState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<DashBoardState, DashBoardState>,
-              DashBoardState,
+              AnyNotifier<AsyncValue<DashBoardState>, DashBoardState>,
+              AsyncValue<DashBoardState>,
               Object?,
               Object?
             >;
