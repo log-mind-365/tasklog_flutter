@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tasklog_flutter/core/constants/dash_board_tab_menu_enum.dart';
+import 'package:tasklog_flutter/core/di/viewmodel_providers.dart';
 import 'package:tasklog_flutter/domain/entity/task_entity.dart';
-import 'package:tasklog_flutter/presentation/dashboard/dash_board_view_model.dart';
 import 'package:tasklog_flutter/presentation/dashboard/widgets/write_task_bottom_sheet.dart';
 
 class DashBoardView extends ConsumerWidget {

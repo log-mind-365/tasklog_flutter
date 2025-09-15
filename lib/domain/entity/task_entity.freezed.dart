@@ -212,14 +212,14 @@ return $default(_that.id,_that.title,_that.content,_that.isCompleted,_that.statu
 
 
 class _TaskEntity implements TaskEntity {
-   _TaskEntity({required this.id, required this.title, this.content, required this.isCompleted, required this.status, required this.createdAt, required this.updatedAt});
+   _TaskEntity({this.id = 0, required this.title, this.content, this.isCompleted = false, this.status = TaskStatus.progress, required this.createdAt, required this.updatedAt});
   
 
-@override final  int id;
+@override@JsonKey() final  int id;
 @override final  String title;
 @override final  String? content;
-@override final  bool isCompleted;
-@override final  TaskStatus status;
+@override@JsonKey() final  bool isCompleted;
+@override@JsonKey() final  TaskStatus status;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tasklog_flutter/presentation/dashboard/dash_board_view_model.dart';
+import 'package:tasklog_flutter/core/di/viewmodel_providers.dart';
 
 class WriteTaskBottomSheet extends ConsumerWidget {
   const WriteTaskBottomSheet({super.key});

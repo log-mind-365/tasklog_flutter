@@ -7,11 +7,11 @@ enum TaskStatus { progress, stopped, paused }
 @freezed
 abstract class TaskEntity with _$TaskEntity {
   factory TaskEntity({
-    required int id,
+    @Default(0) int id,
     required String title,
     String? content,
-    required bool isCompleted,
-    required TaskStatus status,
+    @Default(false) bool isCompleted,
+    @Default(TaskStatus.progress) TaskStatus status,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _TaskEntity;
