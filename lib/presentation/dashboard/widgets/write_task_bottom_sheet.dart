@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tasklog_flutter/presentation/dashboard/dash_board_view_model.dart';
 
-class WriteTaskBottomSheet extends StatelessWidget {
+class WriteTaskBottomSheet extends ConsumerWidget {
   const WriteTaskBottomSheet({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: EdgeInsets.all(20),
       child: Column(
@@ -15,12 +17,18 @@ class WriteTaskBottomSheet extends StatelessWidget {
               hintText: 'Task Name',
               border: InputBorder.none,
             ),
+            onSubmitted: (value) {
+              ref.read(dashBoardViewModelProvider.notifier).addTask(value, '');
+              Navigator.pop(context);
+            },
           ),
           Row(
             children: [
-              IconButton(onPressed: () {}, icon: Icon(Icons.adb)),
-              IconButton(onPressed: () {}, icon: Icon(Icons.ac_unit)),
-              IconButton(onPressed: () {}, icon: Icon(Icons.ac_unit)),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.access_time_outlined),
+              ),
+              IconButton(onPressed: () {}, icon: Icon(Icons.star_border)),
               Spacer(),
               TextButton(onPressed: () {}, child: Text('Save')),
             ],

@@ -1,17 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tasklog_flutter/core/constants/dash_board_tab_menu_enum.dart';
-import 'package:tasklog_flutter/data/model/task_item.dart';
+import 'package:tasklog_flutter/domain/entity/task_entity.dart';
 
 @immutable
 class DashBoardState {
-  final List<TaskItem> tasks;
+  final List<TaskEntity> tasks;
   final DashBoardTabMenu currentTabMenu;
 
   const DashBoardState({required this.tasks, required this.currentTabMenu});
 
   DashBoardState copyWith({
-    List<TaskItem>? tasks,
+    List<TaskEntity>? tasks,
     DashBoardTabMenu? currentTabMenu,
   }) {
     return DashBoardState(
@@ -30,8 +30,8 @@ class DashBoardViewModel extends Notifier<DashBoardState> {
     );
   }
 
-  void addTask(TaskItem task) {
-    state = state.copyWith(tasks: [...state.tasks, task]);
+  void addTask(String title, String content) {
+    // state = state.copyWith(tasks: [...state.tasks, task]);
   }
 }
 

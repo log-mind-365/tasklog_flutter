@@ -3,12 +3,11 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
-class $TaskItemsTable extends TaskItems
-    with TableInfo<$TaskItemsTable, TaskItem> {
+class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskModel> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $TaskItemsTable(this.attachedDatabase, [this._alias]);
+  $TasksTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -46,21 +45,30 @@ class $TaskItemsTable extends TaskItems
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _isCheckedMeta = const VerificationMeta(
-    'isChecked',
+  static const VerificationMeta _isCompletedMeta = const VerificationMeta(
+    'isCompleted',
   );
   @override
-  late final GeneratedColumn<bool> isChecked = GeneratedColumn<bool>(
-    'is_checked',
+  late final GeneratedColumn<bool> isCompleted = GeneratedColumn<bool>(
+    'is_completed',
     aliasedName,
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_checked" IN (0, 1))',
+      'CHECK ("is_completed" IN (0, 1))',
     ),
     defaultValue: const Constant(false),
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<TaskStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<TaskStatus>($TasksTable.$converterstatus);
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -68,26 +76,39 @@ class $TaskItemsTable extends TaskItems
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
     'created_at',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
   );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     title,
     content,
-    isChecked,
+    isCompleted,
+    status,
     createdAt,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'task_items';
+  static const String $name = 'tasks';
   @override
   VerificationContext validateIntegrity(
-    Insertable<TaskItem> instance, {
+    Insertable<TaskModel> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -109,10 +130,13 @@ class $TaskItemsTable extends TaskItems
         content.isAcceptableOrUnknown(data['content']!, _contentMeta),
       );
     }
-    if (data.containsKey('is_checked')) {
+    if (data.containsKey('is_completed')) {
       context.handle(
-        _isCheckedMeta,
-        isChecked.isAcceptableOrUnknown(data['is_checked']!, _isCheckedMeta),
+        _isCompletedMeta,
+        isCompleted.isAcceptableOrUnknown(
+          data['is_completed']!,
+          _isCompletedMeta,
+        ),
       );
     }
     if (data.containsKey('created_at')) {
@@ -120,6 +144,16 @@ class $TaskItemsTable extends TaskItems
         _createdAtMeta,
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -127,9 +161,9 @@ class $TaskItemsTable extends TaskItems
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  TaskItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+  TaskModel map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return TaskItem(
+    return TaskModel(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -142,187 +176,102 @@ class $TaskItemsTable extends TaskItems
         DriftSqlType.string,
         data['${effectivePrefix}content'],
       ),
-      isChecked: attachedDatabase.typeMapping.read(
+      isCompleted: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
-        data['${effectivePrefix}is_checked'],
+        data['${effectivePrefix}is_completed'],
       )!,
+      status: $TasksTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
-      ),
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
   @override
-  $TaskItemsTable createAlias(String alias) {
-    return $TaskItemsTable(attachedDatabase, alias);
+  $TasksTable createAlias(String alias) {
+    return $TasksTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<TaskStatus, String, String> $converterstatus =
+      const EnumNameConverter<TaskStatus>(TaskStatus.values);
 }
 
-class TaskItem extends DataClass implements Insertable<TaskItem> {
-  final int id;
-  final String title;
-  final String? content;
-  final bool isChecked;
-  final DateTime? createdAt;
-  const TaskItem({
-    required this.id,
-    required this.title,
-    this.content,
-    required this.isChecked,
-    this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['title'] = Variable<String>(title);
-    if (!nullToAbsent || content != null) {
-      map['content'] = Variable<String>(content);
-    }
-    map['is_checked'] = Variable<bool>(isChecked);
-    if (!nullToAbsent || createdAt != null) {
-      map['created_at'] = Variable<DateTime>(createdAt);
-    }
-    return map;
-  }
-
-  TaskItemsCompanion toCompanion(bool nullToAbsent) {
-    return TaskItemsCompanion(
-      id: Value(id),
-      title: Value(title),
-      content: content == null && nullToAbsent
-          ? const Value.absent()
-          : Value(content),
-      isChecked: Value(isChecked),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
-    );
-  }
-
-  factory TaskItem.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TaskItem(
-      id: serializer.fromJson<int>(json['id']),
-      title: serializer.fromJson<String>(json['title']),
-      content: serializer.fromJson<String?>(json['content']),
-      isChecked: serializer.fromJson<bool>(json['isChecked']),
-      createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'title': serializer.toJson<String>(title),
-      'content': serializer.toJson<String?>(content),
-      'isChecked': serializer.toJson<bool>(isChecked),
-      'createdAt': serializer.toJson<DateTime?>(createdAt),
-    };
-  }
-
-  TaskItem copyWith({
-    int? id,
-    String? title,
-    Value<String?> content = const Value.absent(),
-    bool? isChecked,
-    Value<DateTime?> createdAt = const Value.absent(),
-  }) => TaskItem(
-    id: id ?? this.id,
-    title: title ?? this.title,
-    content: content.present ? content.value : this.content,
-    isChecked: isChecked ?? this.isChecked,
-    createdAt: createdAt.present ? createdAt.value : this.createdAt,
-  );
-  TaskItem copyWithCompanion(TaskItemsCompanion data) {
-    return TaskItem(
-      id: data.id.present ? data.id.value : this.id,
-      title: data.title.present ? data.title.value : this.title,
-      content: data.content.present ? data.content.value : this.content,
-      isChecked: data.isChecked.present ? data.isChecked.value : this.isChecked,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TaskItem(')
-          ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('content: $content, ')
-          ..write('isChecked: $isChecked, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, title, content, isChecked, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TaskItem &&
-          other.id == this.id &&
-          other.title == this.title &&
-          other.content == this.content &&
-          other.isChecked == this.isChecked &&
-          other.createdAt == this.createdAt);
-}
-
-class TaskItemsCompanion extends UpdateCompanion<TaskItem> {
+class TasksCompanion extends UpdateCompanion<TaskModel> {
   final Value<int> id;
   final Value<String> title;
   final Value<String?> content;
-  final Value<bool> isChecked;
-  final Value<DateTime?> createdAt;
-  const TaskItemsCompanion({
+  final Value<bool> isCompleted;
+  final Value<TaskStatus> status;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const TasksCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.content = const Value.absent(),
-    this.isChecked = const Value.absent(),
+    this.isCompleted = const Value.absent(),
+    this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
-  TaskItemsCompanion.insert({
+  TasksCompanion.insert({
     this.id = const Value.absent(),
     required String title,
     this.content = const Value.absent(),
-    this.isChecked = const Value.absent(),
-    this.createdAt = const Value.absent(),
-  }) : title = Value(title);
-  static Insertable<TaskItem> custom({
+    this.isCompleted = const Value.absent(),
+    required TaskStatus status,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) : title = Value(title),
+       status = Value(status),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<TaskModel> custom({
     Expression<int>? id,
     Expression<String>? title,
     Expression<String>? content,
-    Expression<bool>? isChecked,
+    Expression<bool>? isCompleted,
+    Expression<String>? status,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
       if (content != null) 'content': content,
-      if (isChecked != null) 'is_checked': isChecked,
+      if (isCompleted != null) 'is_completed': isCompleted,
+      if (status != null) 'status': status,
       if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
-  TaskItemsCompanion copyWith({
+  TasksCompanion copyWith({
     Value<int>? id,
     Value<String>? title,
     Value<String?>? content,
-    Value<bool>? isChecked,
-    Value<DateTime?>? createdAt,
+    Value<bool>? isCompleted,
+    Value<TaskStatus>? status,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
   }) {
-    return TaskItemsCompanion(
+    return TasksCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
       content: content ?? this.content,
-      isChecked: isChecked ?? this.isChecked,
+      isCompleted: isCompleted ?? this.isCompleted,
+      status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -338,23 +287,33 @@ class TaskItemsCompanion extends UpdateCompanion<TaskItem> {
     if (content.present) {
       map['content'] = Variable<String>(content.value);
     }
-    if (isChecked.present) {
-      map['is_checked'] = Variable<bool>(isChecked.value);
+    if (isCompleted.present) {
+      map['is_completed'] = Variable<bool>(isCompleted.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $TasksTable.$converterstatus.toSql(status.value),
+      );
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('TaskItemsCompanion(')
+    return (StringBuffer('TasksCompanion(')
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('content: $content, ')
-          ..write('isChecked: $isChecked, ')
-          ..write('createdAt: $createdAt')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -363,34 +322,38 @@ class TaskItemsCompanion extends UpdateCompanion<TaskItem> {
 abstract class _$TaskLogDatabase extends GeneratedDatabase {
   _$TaskLogDatabase(QueryExecutor e) : super(e);
   $TaskLogDatabaseManager get managers => $TaskLogDatabaseManager(this);
-  late final $TaskItemsTable taskItems = $TaskItemsTable(this);
+  late final $TasksTable tasks = $TasksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [taskItems];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [tasks];
 }
 
-typedef $$TaskItemsTableCreateCompanionBuilder =
-    TaskItemsCompanion Function({
+typedef $$TasksTableCreateCompanionBuilder =
+    TasksCompanion Function({
       Value<int> id,
       required String title,
       Value<String?> content,
-      Value<bool> isChecked,
-      Value<DateTime?> createdAt,
+      Value<bool> isCompleted,
+      required TaskStatus status,
+      required DateTime createdAt,
+      required DateTime updatedAt,
     });
-typedef $$TaskItemsTableUpdateCompanionBuilder =
-    TaskItemsCompanion Function({
+typedef $$TasksTableUpdateCompanionBuilder =
+    TasksCompanion Function({
       Value<int> id,
       Value<String> title,
       Value<String?> content,
-      Value<bool> isChecked,
-      Value<DateTime?> createdAt,
+      Value<bool> isCompleted,
+      Value<TaskStatus> status,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
     });
 
-class $$TaskItemsTableFilterComposer
-    extends Composer<_$TaskLogDatabase, $TaskItemsTable> {
-  $$TaskItemsTableFilterComposer({
+class $$TasksTableFilterComposer
+    extends Composer<_$TaskLogDatabase, $TasksTable> {
+  $$TasksTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -412,20 +375,31 @@ class $$TaskItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get isChecked => $composableBuilder(
-    column: $table.isChecked,
+  ColumnFilters<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<TaskStatus, TaskStatus, String> get status =>
+      $composableBuilder(
+        column: $table.status,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
-class $$TaskItemsTableOrderingComposer
-    extends Composer<_$TaskLogDatabase, $TaskItemsTable> {
-  $$TaskItemsTableOrderingComposer({
+class $$TasksTableOrderingComposer
+    extends Composer<_$TaskLogDatabase, $TasksTable> {
+  $$TasksTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -447,8 +421,13 @@ class $$TaskItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get isChecked => $composableBuilder(
-    column: $table.isChecked,
+  ColumnOrderings<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -456,11 +435,16 @@ class $$TaskItemsTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
-class $$TaskItemsTableAnnotationComposer
-    extends Composer<_$TaskLogDatabase, $TaskItemsTable> {
-  $$TaskItemsTableAnnotationComposer({
+class $$TasksTableAnnotationComposer
+    extends Composer<_$TaskLogDatabase, $TasksTable> {
+  $$TasksTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -476,69 +460,85 @@ class $$TaskItemsTableAnnotationComposer
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
 
-  GeneratedColumn<bool> get isChecked =>
-      $composableBuilder(column: $table.isChecked, builder: (column) => column);
+  GeneratedColumn<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<TaskStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
-class $$TaskItemsTableTableManager
+class $$TasksTableTableManager
     extends
         RootTableManager<
           _$TaskLogDatabase,
-          $TaskItemsTable,
-          TaskItem,
-          $$TaskItemsTableFilterComposer,
-          $$TaskItemsTableOrderingComposer,
-          $$TaskItemsTableAnnotationComposer,
-          $$TaskItemsTableCreateCompanionBuilder,
-          $$TaskItemsTableUpdateCompanionBuilder,
+          $TasksTable,
+          TaskModel,
+          $$TasksTableFilterComposer,
+          $$TasksTableOrderingComposer,
+          $$TasksTableAnnotationComposer,
+          $$TasksTableCreateCompanionBuilder,
+          $$TasksTableUpdateCompanionBuilder,
           (
-            TaskItem,
-            BaseReferences<_$TaskLogDatabase, $TaskItemsTable, TaskItem>,
+            TaskModel,
+            BaseReferences<_$TaskLogDatabase, $TasksTable, TaskModel>,
           ),
-          TaskItem,
+          TaskModel,
           PrefetchHooks Function()
         > {
-  $$TaskItemsTableTableManager(_$TaskLogDatabase db, $TaskItemsTable table)
+  $$TasksTableTableManager(_$TaskLogDatabase db, $TasksTable table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$TaskItemsTableFilterComposer($db: db, $table: table),
+              $$TasksTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$TaskItemsTableOrderingComposer($db: db, $table: table),
+              $$TasksTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$TaskItemsTableAnnotationComposer($db: db, $table: table),
+              $$TasksTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String?> content = const Value.absent(),
-                Value<bool> isChecked = const Value.absent(),
-                Value<DateTime?> createdAt = const Value.absent(),
-              }) => TaskItemsCompanion(
+                Value<bool> isCompleted = const Value.absent(),
+                Value<TaskStatus> status = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => TasksCompanion(
                 id: id,
                 title: title,
                 content: content,
-                isChecked: isChecked,
+                isCompleted: isCompleted,
+                status: status,
                 createdAt: createdAt,
+                updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String title,
                 Value<String?> content = const Value.absent(),
-                Value<bool> isChecked = const Value.absent(),
-                Value<DateTime?> createdAt = const Value.absent(),
-              }) => TaskItemsCompanion.insert(
+                Value<bool> isCompleted = const Value.absent(),
+                required TaskStatus status,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+              }) => TasksCompanion.insert(
                 id: id,
                 title: title,
                 content: content,
-                isChecked: isChecked,
+                isCompleted: isCompleted,
+                status: status,
                 createdAt: createdAt,
+                updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -548,24 +548,24 @@ class $$TaskItemsTableTableManager
       );
 }
 
-typedef $$TaskItemsTableProcessedTableManager =
+typedef $$TasksTableProcessedTableManager =
     ProcessedTableManager<
       _$TaskLogDatabase,
-      $TaskItemsTable,
-      TaskItem,
-      $$TaskItemsTableFilterComposer,
-      $$TaskItemsTableOrderingComposer,
-      $$TaskItemsTableAnnotationComposer,
-      $$TaskItemsTableCreateCompanionBuilder,
-      $$TaskItemsTableUpdateCompanionBuilder,
-      (TaskItem, BaseReferences<_$TaskLogDatabase, $TaskItemsTable, TaskItem>),
-      TaskItem,
+      $TasksTable,
+      TaskModel,
+      $$TasksTableFilterComposer,
+      $$TasksTableOrderingComposer,
+      $$TasksTableAnnotationComposer,
+      $$TasksTableCreateCompanionBuilder,
+      $$TasksTableUpdateCompanionBuilder,
+      (TaskModel, BaseReferences<_$TaskLogDatabase, $TasksTable, TaskModel>),
+      TaskModel,
       PrefetchHooks Function()
     >;
 
 class $TaskLogDatabaseManager {
   final _$TaskLogDatabase _db;
   $TaskLogDatabaseManager(this._db);
-  $$TaskItemsTableTableManager get taskItems =>
-      $$TaskItemsTableTableManager(_db, _db.taskItems);
+  $$TasksTableTableManager get tasks =>
+      $$TasksTableTableManager(_db, _db.tasks);
 }
